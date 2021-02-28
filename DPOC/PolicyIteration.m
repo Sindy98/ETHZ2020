@@ -55,14 +55,22 @@ end
 
 function J = valuePolicy(G,P,u)
 global K 
+global TERMINAL_STATE_INDEX
 I = eye(K);
-P_policy = zeros(K,K);
-G_policy = zeros(K,1);
-for i = 1:K
+P_policy = zeros(K-1,K-1);
+G_policy = zeros(K-1,1);
+for i = 1:TERMINAL_STATE_INDEX-1
     G_policy(i,1) = G(i,u(i));
     P_policy(i,:) = P(i,:,u(i));
 end
-J = mtimes(inv(I-P_policy),G_policy);
+for i = TERMINAL_STATE_INDEX+1:K
+    G_policy(i-1,1) = G(i,u(i));
+    P_policy(i-1,:) = P(i,:,u(i));
+end
+J_1 = mtimes(inv(I-P_policy),G_policy);
+J = zeros(K,1)
+J(1:TERMINAL_STATE_INDEX-1,1) = J_1(1:TERMINAL_STATE_INDEX-1,1)
+J(TERMINAL_STATE_INDEX+1:K,1) = J_1(TERMINAL_STATE_INDEX:K-1,1)
 end
 function [a_opt,v_opt] = next_best_a_v(k,P,G,J_last)
 global K
